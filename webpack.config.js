@@ -3,6 +3,7 @@ const HTMLWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 
 module.exports = (env, argv) => {
   const mode = env.NODE_ENV;
@@ -16,6 +17,12 @@ module.exports = (env, argv) => {
       path: path.resolve(__dirname, 'build'),
       filename: isProd ? 'js/[name].[hash].js' : 'js/[name].js',
       clean: true,
+    },
+    resolve: {
+      extensions: ['.js', '.css', '.scss'],
+      alias: {
+        '@svg': path.resolve(__dirname, 'src', 'img', 'svg'),
+      },
     },
     module: {
       rules: [
@@ -52,7 +59,15 @@ module.exports = (env, argv) => {
           ],
         },
         {
-          test: /\.(png|svg|jpg|jpeg|gif|webp)$/i,
+          test: /\.svg$/,
+          loader: 'svg-sprite-loader',
+          options: {
+            extract: true,
+            outputPath: '/img/',
+          }
+        },
+        {
+          test: /\.(png|jpg|jpeg|gif|webp)$/i,
           type: 'asset/resource',
           use: !isProd
             ? []
@@ -93,6 +108,17 @@ module.exports = (env, argv) => {
         {
           test: /\.html$/i,
           loader: 'html-loader',
+          options: {
+            sources: {
+              list: [
+                {
+                  tag: "img",
+                  attribute: "data-src",
+                  type: "src",
+                },
+              ],
+            },
+          },
         },
         {
           test: /\.(woff|woff2|eot|ttf|otf)$/i,
@@ -102,9 +128,6 @@ module.exports = (env, argv) => {
           }
         },
       ],
-    },
-    resolve: {
-      extensions: ['.js', '.css', '.scss']
     },
     optimization: {
       minimize: true,
@@ -133,12 +156,14 @@ module.exports = (env, argv) => {
       hot: true,
       compress: true,
       static: {
-        directory: path.join(__dirname, 'public'),
+        directory: path.join(__dirname, 'src'),
       }
     },
     plugins: [
+      new SpriteLoaderPlugin(),
       new HTMLWebpackPlugin({
-        template: './index.html'
+        template: './index.html',
+        filename: 'index.html',
       }),
       new MiniCssExtractPlugin({
         filename: isProd ? 'css/[name].[hash].css' : 'css/[name].css',
@@ -146,4 +171,3 @@ module.exports = (env, argv) => {
     ],
   }
 };
-

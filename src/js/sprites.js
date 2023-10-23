@@ -1,0 +1,1 @@
+//import '@svg/example.svg'; нужно вставить вместо example название svg из папки img/svg
