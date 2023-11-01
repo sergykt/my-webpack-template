@@ -1,7 +1,29 @@
+body {
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.wrapper {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.main {
+  margin-top: var(--header-height);
+  flex: 1 1;
+}
+
 .container {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 15px;
+  padding: 0 var(--gutter);
+  box-sizing: border-box;
 }
 
 h1,
@@ -9,15 +31,20 @@ h2,
 h3,
 h4,
 h5,
-h6 {
+h6,
+p {
   margin: 0;
-  padding: 0;
 }
 
-body {
-  color: blue;
-  font-size: 32px;
-  user-select: none;
-  font-family: 'Roboto';
-  font-weight: 400;
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+:target {
+  scroll-margin-top: var(--header-height);
 }

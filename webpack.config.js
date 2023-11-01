@@ -19,7 +19,7 @@ module.exports = (env, argv) => {
       clean: true,
     },
     resolve: {
-      extensions: ['.js', '.css', '.scss'],
+      extensions: ['.js', '.css', '.scss', '.svg'],
       alias: {
         '@svg': path.resolve(__dirname, 'src', 'img', 'svg'),
       },
