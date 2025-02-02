@@ -1,27 +1,30 @@
-const path = require('path');
-const HTMLWebpackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
-const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
+const path = require("path");
+const HTMLWebpackPlugin = require("html-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
+const ESLintPlugin = require("eslint-webpack-plugin");
+const StylelintPlugin = require("stylelint-webpack-plugin");
+const tailwindcss = require("tailwindcss");
 
 module.exports = (env, argv) => {
   const mode = env.NODE_ENV;
-  const isProd = argv.mode === 'production';
+  const isProd = argv.mode === "production";
 
   return {
     mode,
-    context: path.resolve(__dirname, 'src'),
-    entry: './js/main.js',
+    context: path.resolve(__dirname, "src"),
+    entry: "./js/main.js",
     output: {
-      path: path.resolve(__dirname, 'build'),
-      filename: isProd ? 'js/[name].[hash].js' : 'js/[name].js',
+      path: path.resolve(__dirname, "build"),
+      filename: isProd ? "js/[name].[contenthash].js" : "js/[name].js",
       clean: true,
     },
     resolve: {
-      extensions: ['.js', '.css', '.scss', '.svg'],
+      extensions: [".js", ".css", ".scss", ".svg"],
       alias: {
-        '@svg': path.resolve(__dirname, 'src', 'img', 'svg'),
+        "@svg": path.resolve(__dirname, "src", "img", "svg"),
       },
     },
     module: {
@@ -30,125 +33,84 @@ module.exports = (env, argv) => {
           test: /\.(?:js|mjs|cjs)$/,
           exclude: /node_modules/,
           use: {
-            loader: 'babel-loader',
+            loader: "babel-loader",
             options: {
-              presets: [
-                ['@babel/preset-env', { targets: 'defaults' }]
-              ]
-            }
-          }
+              presets: [["@babel/preset-env", { targets: "defaults" }]],
+            },
+          },
         },
         {
           test: /\.(c|sa|sc)ss$/i,
           use: [
             MiniCssExtractPlugin.loader,
-            'css-loader',
+            "css-loader",
             {
               loader: "postcss-loader",
               options: {
                 postcssOptions: {
-                  plugins: [
-                    [
-                      'postcss-preset-env',
-                    ],
-                  ],
+                  plugins: ["postcss-preset-env", tailwindcss],
                 },
               },
             },
-            'sass-loader',
+            "sass-loader",
           ],
         },
         {
-          test: /\.svg$/,
-          loader: 'svg-sprite-loader',
-          options: {
-            extract: true,
-            outputPath: '/img/',
-          }
-        },
-        {
-          test: /\.(png|jpg|jpeg|gif|webp)$/i,
-          type: 'asset/resource',
-          use: !isProd
-            ? []
-            : [
-              {
-                loader: 'image-webpack-loader',
-                options: {
-                  mozjpeg: {
-                    progressive: true,
-                  },
-                  optipng: {
-                    enabled: false,
-                  },
-                  pngquant: {
-                    quality: [0.65, 0.9],
-                    speed: 4,
-                  },
-                  gifsicle: {
-                    interlaced: false,
-                  },
-                  webp: {
-                    quality: 75,
-                  },
-                },
-              },
-            ],
+          test: /\.(jpe?g|png|gif|svg|webp)$/i,
+          type: "asset/resource",
           generator: {
-            filename: 'img/[name][ext]',
-          }
-        },
-        {
-          test: /\.ico$/i,
-          type: 'asset/resource',
-          generator: {
-            filename: '[name][ext]',
+            filename: "img/[name][ext]",
           },
         },
         {
-          test: /\.html$/i,
-          loader: 'html-loader',
-          options: {
-            sources: {
-              list: [
-                {
-                  tag: "img",
-                  attribute: "data-src",
-                  type: "src",
-                },
-              ],
-            },
+          test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)$/i,
+          type: "asset/resource",
+          generator: {
+            filename: "media/[name][ext]",
+          },
+        },
+        {
+          test: /\.ico$/i,
+          type: "asset/resource",
+          generator: {
+            filename: "[name][ext]",
           },
         },
         {
           test: /\.(woff|woff2|eot|ttf|otf)$/i,
-          type: 'asset/resource',
+          type: "asset/resource",
           generator: {
-            filename: 'fonts/[name][ext]',
-          }
+            filename: "fonts/[name][ext]",
+          },
         },
       ],
     },
     optimization: {
       minimize: true,
       splitChunks: {
-        chunks: 'all',
+        chunks: "all",
       },
       minimizer: [
-        new CssMinimizerPlugin(
-          {
-            minimizerOptions: {
-              preset: [
-                'default',
-                {
-                  discardComments: { removeAll: true },
-                },
-              ],
-            },
-          }
-        ),
+        new CssMinimizerPlugin({
+          minimizerOptions: {
+            preset: [
+              "default",
+              {
+                discardComments: { removeAll: true },
+              },
+            ],
+          },
+        }),
         new TerserPlugin(),
-      ]
+        new ImageMinimizerPlugin({
+          minimizer: {
+            implementation: ImageMinimizerPlugin.sharpMinify,
+            options: {
+              encodeOptions: {},
+            },
+          },
+        }),
+      ],
     },
     devServer: {
       port: 5001,
@@ -156,18 +118,24 @@ module.exports = (env, argv) => {
       hot: true,
       compress: true,
       static: {
-        directory: path.join(__dirname, 'src'),
-      }
+        directory: path.join(__dirname, "src"),
+      },
     },
     plugins: [
-      new SpriteLoaderPlugin(),
       new HTMLWebpackPlugin({
-        template: './index.html',
-        filename: 'index.html',
+        template: "./index.html",
+        filename: "index.html",
+        title: "Webpack template",
+        favicon: "./assets/favicon.ico",
       }),
       new MiniCssExtractPlugin({
-        filename: isProd ? 'css/[name].[hash].css' : 'css/[name].css',
+        filename: isProd ? "css/[name].[contenthash].css" : "css/[name].css",
+      }),
+      new ESLintPlugin(),
+      new StylelintPlugin({
+        files: "**/*.(s(c|a)ss|css)",
+        configFile: "./.stylelintrc.json",
       }),
     ],
-  }
+  };
 };

@@ -1,1 +1,3 @@
-My webpack template
+# Webpack template
+
+Basic webpack template
